@@ -1,4 +1,5 @@
 
+import sys
 import math
 import random
 from bitstring import BitArray
@@ -22,16 +23,11 @@ table = {
  '1111' : '#',
  }
 
-RESULT_EXPECTED = 500
-
-N_POPULATION = 1000
-GENERATION_MAX = 200
 FITNESS_MAX = 100.0
 CROSSOVER_RATE = 0.7
 MUTATION_RATE = 0.001
 
 ###	To Do ###
-# Improve roulette function perf
 # Add multiple cut to crossover function
 # Add GUI
 # Add unittest
@@ -71,28 +67,33 @@ class Chromosome:
 		return result
 
 
-def main():
+def main(argv):
 	print "Genetic Algorithm"
+	
+	result_expected = int(argv[1])
+	population_size = int(argv[2])
+	generation_max = int(argv[3])
+	print "Population size: {}".format(population_size)
 
 	population = []
 	generation_count = 1;
 	cpt = 0
 
 	# Generate initial population
-	for i in xrange(0, N_POPULATION):
+	for i in xrange(0, population_size):
 		population.append(Chromosome())
 				
 
-	while (cpt < GENERATION_MAX):
+	while (cpt < generation_max):
 		
 		cpt += 1
 		
 		# Selection
 		print "\n##########"
-		print "Population: {}".format(N_POPULATION)
-		print "Expected result: {}".format(RESULT_EXPECTED)
-		print "# Selection gen:{}/{}".format(generation_count, GENERATION_MAX)
-		selection(population)
+		print "Population: {}".format(population_size)
+		print "Expected result: {}".format(result_expected)
+		print "# Selection gen:{}/{}".format(generation_count, generation_max)
+		selection(result_expected, population)
 		
 		the_best = get_the_best(population)
 		print "\nBest: {}".format(the_best)
@@ -131,20 +132,19 @@ def mutation(population):
 def crossover(population, generation_count, total_fitness):
 	
 	new_population = []
-	child_count = 0
-	parent_count = 0
 	parents= []
+	pick_count = len(population)/10	
 	
-	
-	while (len(new_population) < N_POPULATION):
+	while (len(new_population) <= len(population)):
 		
-		#~ print "crossover"
-		
-		parent1 = roulette(population, total_fitness)
-		parent2 = roulette(population, total_fitness)
+		if not parents:
+			parents = roulette(population, total_fitness, pick_count)
+
+		parent1 = parents[0]
+		parent2 = parents[1]
+		del parents[0:2]
 	
 		if random.random() <= CROSSOVER_RATE:
-		
 			cut = random.randint(0, Chromosome.LENGTH)
 			
 			child1 = Chromosome()
@@ -157,48 +157,42 @@ def crossover(population, generation_count, total_fitness):
 			
 			new_population.append(child1)
 			new_population.append(child2)
-			
-			child_count += 2
-			
-			#~ print "cut: " + str(cut)
-			#~ print parent1
-			#~ print parent2
-			#~ print child1
-			
-			#~ print ""
-			#~ print parent1
-			#~ print parent2
-			#~ print child2
 		else:
-			#~ print "no crossover"
-			
 			if all(c.id != parent1.id for c in new_population):
 				new_population.append(parent1)
-				parents.append(parent1.id)
 			
 			if all(c.id != parent2.id for c in new_population):
 				new_population.append(parent2)
-				parents.append(parent2.id)
-	
-	#~ print "child: {}\nparent: {} {}".format(child_count, len(parents), parents)
 	
 	return new_population
 	
 	
-def roulette(population, total_fitness):
+def roulette(population, total_fitness, pick_count):
+	
+	cuts = []
+	parents = []
+	
+	# pick_count >= 2 and even
+	if pick_count < 2: pick_count = 2
+	if pick_count % 2 != 0: pick_count += 1
 	
 	# Generated random number between 0 and total_fitness
-	cut = random.randint(0, math.floor(total_fitness))
+	for i in xrange(0, pick_count):
+		cuts.append(random.randint(0, math.floor(total_fitness)))
 	
 	cumul_fitness = 0
-	for c in population:
-		cumul_fitness += c.fitness
+	for chromo in population:
+		cumul_fitness += chromo.fitness
 		
-		if cumul_fitness >= cut:
-			return c
-			
-	print "error: roulette %d %f" % (cut, cumul_fitness)
-	#~ return population[-1]
+		for c in cuts:
+			if cumul_fitness >= c:
+				parents.append(chromo)
+		
+		# Removed used cuts
+		cuts = [c for c in cuts if not cumul_fitness >= c]
+
+	return parents
+
 	
 def get_total_fitness(population):
 	return sum(c.fitness for c in population)
@@ -206,7 +200,7 @@ def get_total_fitness(population):
 
 # median, esperance, ecart-type, variance
 def average(population):
-	return sum(c.fitness for c in population) / N_POPULATION
+	return sum(c.fitness for c in population) / len(population)
 
 
 def get_the_best(population):
@@ -219,19 +213,19 @@ def get_the_best(population):
 	print "error: get_the_best {}".format(best_fitness)
 		
 
-def selection(population):
+def selection(result_expected, population):
 	for p in population:
 		evaluate(p)
-		fitness(p)
+		fitness(result_expected, p)
 		#~ print p
 
 
-def fitness(chromosome):
-	if chromosome.math_result == RESULT_EXPECTED:
+def fitness(result_expected, chromosome):
+	if chromosome.math_result == result_expected:
 		chromosome.fitness = FITNESS_MAX
 	else:
 		chromosome.fitness = (FITNESS_MAX - 1.0) \
-		/(abs(RESULT_EXPECTED - chromosome.math_result))
+		/(abs(result_expected - chromosome.math_result))
 
 
 def evaluate(chromosome):
@@ -276,7 +270,7 @@ def is_digit(genes):
 
 
 if __name__=="__main__":
-	main()
+	main(sys.argv)
 	
 			
 
