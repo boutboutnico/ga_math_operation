@@ -31,10 +31,10 @@ CROSSOVER_RATE = 0.7
 MUTATION_RATE = 0.001
 
 ###	To Do ###
-# Add to github
 # Improve roulette function perf
 # Add multiple cut to crossover function
 # Add GUI
+# Add unittest
  
 class Chromosome:
 	'''Represents a chromosome
