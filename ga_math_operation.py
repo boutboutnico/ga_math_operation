@@ -57,7 +57,7 @@ class Chromosome:
 		#~ result = str(id) + " "
 		result = "[{:>3}:{:>3}] ".format(self.id, self.generation) 
 		#~ result += "{} ".format(self.genes.bin)
-		for i in xrange(0, self.LENGTH, 4):
+		for i in range(0, self.LENGTH, 4):
 			sub_genes = self.genes[i:i+4].bin
 			if sub_genes in table:
 				val = table[sub_genes]
@@ -67,20 +67,38 @@ class Chromosome:
 		return result
 
 
+#~ GA()
+   #~ initialize population
+   #~ find fitness of population
+   
+   #~ while (termination criteria is reached) do
+      #~ parent selection
+      #~ crossover with probability pc
+      #~ mutation with probability pm
+      #~ decode and fitness calculation
+      #~ survivor selection
+      #~ find best
+   #~ return best
+
 def main(argv):
-	print "Genetic Algorithm"
+	print("Genetic Algorithm")
 	
-	result_expected = int(argv[1])
-	population_size = int(argv[2])
-	generation_max = int(argv[3])
-	print "Population size: {}".format(population_size)
+	try:
+		result_expected = int(argv[1])
+		population_size = int(argv[2])
+		generation_max = int(argv[3])
+		print("Population size: {}".format(population_size))
+	except IndexError:
+		print("3 arguments are expected: Result / "
+			"Population size / Maximum generation number")
+		sys.exit()
 
 	population = []
 	generation_count = 1;
 	cpt = 0
 
 	# Generate initial population
-	for i in xrange(0, population_size):
+	for i in range(0, population_size):
 		population.append(Chromosome())
 				
 
@@ -89,21 +107,21 @@ def main(argv):
 		cpt += 1
 		
 		# Selection
-		print "\n##########"
-		print "Population: {}".format(population_size)
-		print "Expected result: {}".format(result_expected)
-		print "# Selection gen:{}/{}".format(generation_count, generation_max)
+		print("\n##########")
+		print("Population: {}".format(population_size))
+		print("Expected result: {}".format(result_expected))
+		print("# Selection gen:{}/{}".format(generation_count, generation_max))
 		selection(result_expected, population)
 		
 		the_best = get_the_best(population)
-		print "\nBest: {}".format(the_best)
-		print "Average: {:6.2f}".format(average(population))
+		print("\nBest: {}".format(the_best))
+		print("Average: {:6.2f}".format(average(population)))
 		
 		if (the_best.fitness >= FITNESS_MAX):
 			break
 		
 		# Crossover
-		print "# Crossover"
+		print("# Crossover")
 		
 		total_fitness = get_total_fitness(population)
 		#~ print "total fitness: {:6.2f}".format(total_fitness)
@@ -112,7 +130,7 @@ def main(argv):
 		population = crossover(population, generation_count, total_fitness)
 		
 		# Mutation
-		print "# Mutation"
+		print("# Mutation")
 		mutation(population)
 		
 		#~ tmp = raw_input("Press Enter to execute next step")
@@ -121,7 +139,7 @@ def main(argv):
 def mutation(population):
 	
 	for c in population:
-		for i in xrange(0, Chromosome.LENGTH):
+		for i in range(0, Chromosome.LENGTH):
 			if random.random() <= MUTATION_RATE:
 				#~ print "mutation: " + str(i)
 				#~ print c.genes, c.genes.bin
@@ -133,7 +151,7 @@ def crossover(population, generation_count, total_fitness):
 	
 	new_population = []
 	parents= []
-	pick_count = len(population)/10	
+	pick_count = int(len(population)/10)
 	
 	while (len(new_population) <= len(population)):
 		
@@ -177,7 +195,7 @@ def roulette(population, total_fitness, pick_count):
 	if pick_count % 2 != 0: pick_count += 1
 	
 	# Generated random number between 0 and total_fitness
-	for i in xrange(0, pick_count):
+	for i in range(0, pick_count):
 		cuts.append(random.randint(0, math.floor(total_fitness)))
 	
 	cumul_fitness = 0
@@ -210,7 +228,7 @@ def get_the_best(population):
 	for c in population:
 		if c.fitness == best_fitness:
 			return c
-	print "error: get_the_best {}".format(best_fitness)
+	print("error: get_the_best {}".format(best_fitness))
 		
 
 def selection(result_expected, population):
@@ -233,7 +251,7 @@ def evaluate(chromosome):
 	operator = 0
 	num_not_op = True	# First we want a number
 	
-	for i in xrange(0, Chromosome.LENGTH, 4):
+	for i in range(0, Chromosome.LENGTH, 4):
 	
 		val = chromosome.genes[i:i+4].uint
 		
